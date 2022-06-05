@@ -33,7 +33,7 @@ func TestCache(t *testing.T) {
 		require.True(t, ok)
 		require.Equal(t, 100, val)
 
-		val, ok = c.Get("bbb")
+		val, ok = c.Get("bbb") //failed
 		require.True(t, ok)
 		require.Equal(t, 200, val)
 
@@ -51,6 +51,19 @@ func TestCache(t *testing.T) {
 
 	t.Run("purge logic", func(t *testing.T) {
 		// Write me
+		c := NewCache(4)
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+		wasInCache = c.Set("bbb", 200)
+		wasInCache = c.Set("ccc", 300)
+		wasInCache = c.Set("ddd", 400)
+		val, ok := c.Get("aaa")
+		require.True(t, ok)
+		require.Equal(t, 100, val)
+		wasInCache = c.Set("eee", 500)
+		val, ok = c.Get("bbb")
+		require.False(t, ok)
+		require.Nil(t, val)
 	})
 }
 
