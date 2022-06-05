@@ -63,4 +63,14 @@ func TestList(t *testing.T) {
 		require.Equal(t, 4, l.Front().Value)
 		require.Equal(t, 3, l.Front().Next.Value)
 	})
+
+	t.Run("twoElements", func(t *testing.T) {
+		l := NewList()
+		l.PushFront(5)
+		l.PushFront(4)
+		l.MoveToFront(l.Back()) // [5 4]
+		require.Equal(t, 5, l.Front().Value)
+		require.Equal(t, 4, l.Front().Next.Value)
+		require.Equal(t, 5, l.Back().Prev.Value)
+	})
 }

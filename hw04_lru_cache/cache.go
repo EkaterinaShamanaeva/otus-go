@@ -32,8 +32,10 @@ func NewCache(capacity int) Cache {
 func (c *lruCache) Set(key Key, value interface{}) bool {
 	// элемент есть в словаре
 	if element, ok := c.items[key]; ok {
-		c.queue.MoveToFront(element)                                         // перемещаем вперед по очереди
-		element.Value.(*cacheItem).value = cacheItem{key: key, value: value} //value // обновляем значение //мб тут словарь cacheItem
+		c.queue.MoveToFront(element) // перемещаем вперед по очереди
+		//element.Value.(*cacheItem).value = cacheItem{key: key, value: value} //value // обновляем значение //мб тут словарь cacheItem
+		item := element.Value.(*cacheItem)
+		item.value = value
 		return true
 	} else {
 		// если количество элементов превышено //нет удаления ?
@@ -55,14 +57,21 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 }
 
 func (c *lruCache) Get(key Key) (interface{}, bool) {
+
+	var cValue interface{}
+
 	element, ok := c.items[key]
 	if !ok {
 		return nil, false
 	}
 	c.queue.MoveToFront(element)
-	return element.Value.(*cacheItem).value, true
+	//return element.Value.(*cacheItem).value, true
+	item := element.Value.(*cacheItem)
+	cValue = item.value
+	return cValue, true
 }
 
 func (c *lruCache) Clear() {
-
+	c.queue = NewList()
+	c.items = make(map[Key]*ListItem, c.capacity)
 }

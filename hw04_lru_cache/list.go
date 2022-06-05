@@ -67,7 +67,7 @@ func (l *list) PushBack(v interface{}) *ListItem {
 	return l.last
 }
 
-func (l *list) Remove(i *ListItem) { //посмотреть если элемент последний или первый, является ли он вообще эл списка
+func (l *list) Remove(i *ListItem) {
 	if i == l.first {
 		l.first = l.first.Next
 		l.first.Prev = nil
@@ -86,21 +86,15 @@ func (l *list) MoveToFront(i *ListItem) {
 		return
 	} else if i == l.last {
 		l.last = i.Prev
-		i.Next = l.first
-		i.Prev.Next = nil
-		//i.Prev = nil
-		l.first = i
-		i.Prev = nil
-
-	} else {
-		i.Prev.Next = i.Next
-		i.Next.Prev = i.Prev
-
-		i.Next = l.first
-		l.first = i
-		i.Prev = nil
-		//i.Next = l.first.Next
-		//i.Prev.Next = i
-		//i.Next.Prev = i
 	}
+	if i.Prev != nil {
+		i.Prev.Next = i.Next
+	}
+	if i.Next != nil {
+		i.Next.Prev = i.Prev
+	}
+	i.Next = l.first
+	l.first.Prev = i
+	l.first = i
+	i.Prev = nil
 }
