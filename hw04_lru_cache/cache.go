@@ -9,8 +9,6 @@ type Cache interface {
 }
 
 type lruCache struct {
-	Cache // Remove me after realization.
-
 	capacity int
 	queue    List
 	items    map[Key]*ListItem
@@ -33,31 +31,25 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 	// элемент есть в словаре
 	if element, ok := c.items[key]; ok {
 		c.queue.MoveToFront(element) // перемещаем вперед по очереди
-		//element.Value.(*cacheItem).value = cacheItem{key: key, value: value} //value // обновляем значение //мб тут словарь cacheItem
 		item := element.Value.(*cacheItem)
 		item.value = value
 		return true
-	} else {
-		// если количество элементов превышено //нет удаления ?
-		if c.queue.Len() == c.capacity {
-			//c.queue.Remove(c.queue.Back())
-			idx := c.queue.Back().Value.(*cacheItem).key
-			delete(c.items, idx)
-			c.queue.Remove(c.queue.Back())
-			//
-		}
-		item := &cacheItem{
-			key:   key,
-			value: value,
-		}
-		element := c.queue.PushFront(item)
-		c.items[key] = element //item.key
-		return false
 	}
+	if c.queue.Len() == c.capacity {
+		idx := c.queue.Back().Value.(*cacheItem).key
+		delete(c.items, idx)
+		c.queue.Remove(c.queue.Back())
+	}
+	item := &cacheItem{
+		key:   key,
+		value: value,
+	}
+	element := c.queue.PushFront(item)
+	c.items[key] = element
+	return false
 }
 
 func (c *lruCache) Get(key Key) (interface{}, bool) {
-
 	var cValue interface{}
 
 	element, ok := c.items[key]
@@ -65,7 +57,6 @@ func (c *lruCache) Get(key Key) (interface{}, bool) {
 		return nil, false
 	}
 	c.queue.MoveToFront(element)
-	//return element.Value.(*cacheItem).value, true
 	item := element.Value.(*cacheItem)
 	cValue = item.value
 	return cValue, true

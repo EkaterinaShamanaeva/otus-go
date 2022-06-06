@@ -10,16 +10,16 @@ type List interface {
 	MoveToFront(i *ListItem)
 }
 
-type ListItem struct { //узел
-	Value interface{} // any type
-	Next  *ListItem   // указатель на след значение
-	Prev  *ListItem   // указатель на пред значение
+type ListItem struct {
+	Value interface{}
+	Next  *ListItem
+	Prev  *ListItem
 }
 
 type list struct {
-	len   int // количество эл-тов листа
+	len   int
 	first *ListItem
-	last  *ListItem // элемент
+	last  *ListItem
 }
 
 func NewList() List {
@@ -34,6 +34,7 @@ func (l *list) Front() *ListItem {
 	}
 	return l.first
 }
+
 func (l *list) Back() *ListItem {
 	if l.len == 0 {
 		return nil
@@ -47,8 +48,8 @@ func (l *list) PushFront(v interface{}) *ListItem {
 		l.first = newItem
 		l.last = newItem
 	} else {
-		l.first.Prev = newItem // поменяли ссылку предыдущего первого элемента (до этого был nil)
-		l.first = newItem      // поменяли сам первый элемент (значение и указатели)
+		l.first.Prev = newItem
+		l.first = newItem
 	}
 	l.len++
 	return l.first
@@ -60,21 +61,22 @@ func (l *list) PushBack(v interface{}) *ListItem {
 		l.first = newItem
 		l.last = newItem
 	} else {
-		l.last.Next = newItem // поменяли указатель бывшего последнего элемента (был nil на след значение)
-		l.last = newItem      // поменяли сам последний элемент
+		l.last.Next = newItem
+		l.last = newItem
 	}
 	l.len++
 	return l.last
 }
 
 func (l *list) Remove(i *ListItem) {
-	if i == l.first {
+	switch i {
+	case l.first:
 		l.first = l.first.Next
 		l.first.Prev = nil
-	} else if i == l.last {
+	case l.last:
 		l.last = l.last.Prev
 		l.last.Next = nil
-	} else {
+	default:
 		i.Prev.Next = i.Next
 		i.Next.Prev = i.Prev
 	}
