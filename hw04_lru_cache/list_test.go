@@ -48,4 +48,29 @@ func TestList(t *testing.T) {
 		}
 		require.Equal(t, []int{70, 80, 60, 40, 10, 30, 50}, elems)
 	})
+
+	t.Run("additional", func(t *testing.T) {
+		l := NewList()
+		l.PushFront(5)
+		l.PushFront(4)
+		l.PushFront(3)
+		l.PushBack(6)      // [3 4 5 6]
+		l.Remove(l.Back()) // [3 4 5]
+		require.Equal(t, 5, l.Back().Value)
+		require.Equal(t, 3, l.Len())
+		second := l.Front().Next // 4
+		l.MoveToFront(second)    // [4 3 5]
+		require.Equal(t, 4, l.Front().Value)
+		require.Equal(t, 3, l.Front().Next.Value)
+	})
+
+	t.Run("twoElements", func(t *testing.T) {
+		l := NewList()
+		l.PushFront(5)
+		l.PushFront(4)
+		l.MoveToFront(l.Back()) // [5 4]
+		require.Equal(t, 5, l.Front().Value)
+		require.Equal(t, 4, l.Front().Next.Value)
+		require.Equal(t, 5, l.Back().Prev.Value)
+	})
 }
