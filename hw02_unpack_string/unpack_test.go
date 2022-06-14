@@ -43,3 +43,28 @@ func TestUnpackInvalidString(t *testing.T) {
 		})
 	}
 }
+
+func TestUnpackKirilica(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{input: "л2щ3мть", expected: "ллщщщмть"},
+		{input: "дз 2ж", expected: "дз  ж"},
+	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.input, func(t *testing.T) {
+			result, err := Unpack(tc.input)
+			require.NoError(t, err)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestSpecialUnicodeChars(t *testing.T) {
+	str := "⛅2as語2"
+	want := "⛅⛅as語語"
+	got, _ := Unpack(str)
+	require.Equal(t, want, got)
+}
