@@ -1,9 +1,5 @@
 package hw06pipelineexecution
 
-import (
-	"fmt"
-)
-
 type (
 	In  = <-chan interface{}
 	Out = In
@@ -14,46 +10,56 @@ type Stage func(in In) (out Out)
 
 func ExecutePipeline(in In, done In, stages ...Stage) Out {
 	outChan := make(Bi)
-	//defer close(outChan)
-	//firstStage := make(Bi)
-	var value interface{}
-	fmt.Println("flag: main before loop")
+
+	inFirstStage := make(Bi)
+	var inNextStage In = inFirstStage
+	var outLastStage Out
 
 	go func() {
-		fmt.Println("flag: go 1 - first stage")
-		//for s := range in {
-		outChan <- <-in //s
-		fmt.Println("flag: go 1 - read input OK")
-		//}
-	}()
-	fmt.Println("flag: before loop")
-	x := stages[0](outChan)
-	fmt.Println("flag: 0 stage")
-	for i := 1; i < len(stages); i++ {
-		fmt.Println("flag: main - loop ", i)
-		if i == len(stages)-1 {
-			value = <-stages[i](x)
-			fmt.Printf("flag: main - stage res: %v,  %T \n", value, value)
-			outChan <- value
-		} else {
-			x = stages[i](x)
+		for s := range in {
+			inFirstStage <- s
 		}
+		close(inFirstStage)
+	}()
+
+	for _, stage := range stages {
+		outLastStage = stage(inNextStage)
+		inNextStage = outLastStage
 	}
 
 	go func() {
-		fmt.Println("flag go2: start go")
-		outChan <- value
-		fmt.Println("flag go2: gor with outchan")
-		//select {
-		//case <-done:
-		//	return
-		//case outChan <- value:
+		//for s := range outLastStage {
+		//	outChan <- s
 		//}
+		//close(outChan)
+		//array := make([]interface{}, 0)
+		for s := range outLastStage {
+			select {
+			case <-done:
+				close(outChan)
+				//for {
+				//	_, ok := <-outChan
+				//	if !ok {
+				//		break
+				//	}
+				//}
+				return
+			default:
+				select {
+				case outChan <- s:
+				case <-done:
+					return
+				}
+			}
+			//for x := range outChan {
+			//	array = append(array, x)
+			//}
+			//return
+
+		}
+		close(outChan)
 
 	}()
-
-	fmt.Println("flag: main end")
-	//fmt.Println(<-outChan) //
 
 	return outChan
 }
