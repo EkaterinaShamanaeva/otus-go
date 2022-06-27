@@ -1,6 +1,7 @@
 package hw06pipelineexecution
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 	"time"
@@ -43,6 +44,7 @@ func TestPipeline(t *testing.T) {
 		go func() {
 			for _, v := range data {
 				in <- v
+				fmt.Println("test")
 			}
 			close(in)
 		}()
