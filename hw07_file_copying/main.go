@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/cheggaaa/pb/v3"
 )
 
 var (
@@ -20,17 +19,9 @@ func init() {
 
 func main() {
 	flag.Parse()
-	fmt.Println("inputs: ", from, to, limit, offset)
 
-	// start new bar
-	bar := pb.StartNew(100)
-
-	err := Copy(from, to, offset, limit, bar)
+	err := Copy(from, to, offset, limit)
 	if err != nil {
-		fmt.Println("result: ", err)
+		fmt.Errorf("copy failed with error %v", err)
 	}
-
-	// finish bar
-	bar.Finish()
-
 }

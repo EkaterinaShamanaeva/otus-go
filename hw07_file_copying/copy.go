@@ -13,7 +13,7 @@ var (
 	ErrOpenFile              = errors.New("file was not opened")
 )
 
-func Copy(fromPath, toPath string, offset, limit int64, bar *pb.ProgressBar) error {
+func Copy(fromPath, toPath string, offset, limit int64) error {
 	// open file <from>
 	var file *os.File
 	file, err := os.OpenFile(fromPath, os.O_RDONLY, 0)
@@ -45,57 +45,48 @@ func Copy(fromPath, toPath string, offset, limit int64, bar *pb.ProgressBar) err
 	var step int64 = 4
 
 	// copy
-	switch limit {
-	// copy all file
-	case 0:
-		for fileSize-sum > step {
-			written, errCopy := io.CopyN(copiedFile, file, step)
-			sum += written
-			if errCopy != nil {
-				if errCopy == io.EOF {
-					break
-				}
-				return errCopy
-			}
-			bar.Add(int(step))
-		}
-		if fileSize-sum != 0 {
-			step = fileSize - sum
-			_, errCopy := io.CopyN(copiedFile, file, step)
-			if errCopy != nil {
-				if errCopy == io.EOF {
-					break
-				}
-				return errCopy
-			}
-			bar.Add(int(step))
-		}
-		bar.Finish()
-	default:
-		// copy limit number of bytes in file
-		for limit-sum < step {
-			written, errCopy := io.CopyN(copiedFile, file, step)
-			sum += written
-			if errCopy != nil {
-				if errCopy == io.EOF {
-					break
-				}
-				return errCopy
-			}
-			bar.Add(int(step))
-		}
-		if limit-sum != 0 {
-			step = limit - sum
-			_, errCopy := io.CopyN(copiedFile, file, step)
-			if errCopy != nil {
-				if errCopy == io.EOF {
-					break
-				}
-				return errCopy
-			}
-			bar.Add(int(step))
-		}
-		bar.Finish()
+	var bytesToCopy int64
+	if limit == 0 {
+		bytesToCopy = fileSize
+	} else {
+		bytesToCopy = limit
 	}
+
+	var count int
+	if fileSize-offset-limit < 0 {
+		count = int(fileSize - offset)
+	} else if limit == 0 {
+		count = int(fileSize)
+	} else {
+		count = int(limit)
+	}
+	bar := pb.StartNew(count)
+
+	for bytesToCopy-sum > step {
+		written, errCopy := io.CopyN(copiedFile, file, step)
+		sum += written
+		bar.Add(int(step))
+		//time.Sleep(time.Millisecond)
+		if errCopy != nil {
+			if errCopy == io.EOF {
+				break
+			}
+			return errCopy
+		}
+	}
+	if bytesToCopy-sum != 0 {
+		step = bytesToCopy - sum
+		_, errCopy := io.CopyN(copiedFile, file, step)
+		bar.Add(int(step))
+		//time.Sleep(time.Millisecond)
+		if errCopy != nil {
+			if errCopy == io.EOF {
+				//break
+				return nil
+			}
+			return errCopy
+		}
+	}
+	bar.Finish()
 	return nil
 }
