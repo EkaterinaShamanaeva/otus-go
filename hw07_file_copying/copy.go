@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"github.com/cheggaaa/pb/v3"
 	"io"
 	"os"
@@ -14,7 +13,7 @@ var (
 	ErrOpenFile              = errors.New("file was not opened")
 )
 
-func Copy(fromPath, toPath string, offset, limit int64, pb *pb.ProgressBar) error {
+func Copy(fromPath, toPath string, offset, limit int64, bar *pb.ProgressBar) error {
 	// open file <from>
 	var file *os.File
 	file, err := os.OpenFile(fromPath, os.O_RDONLY, 0)
@@ -42,21 +41,61 @@ func Copy(fromPath, toPath string, offset, limit int64, pb *pb.ProgressBar) erro
 		return err
 	}
 
+	var sum int64 = 0
+	var step int64 = 4
+
 	// copy
 	switch limit {
+	// copy all file
 	case 0:
-		written, errCopy := io.Copy(copiedFile, file)
-		if errCopy != nil {
-			return errCopy
+		for fileSize-sum > step {
+			written, errCopy := io.CopyN(copiedFile, file, step)
+			sum += written
+			if errCopy != nil {
+				if errCopy == io.EOF {
+					break
+				}
+				return errCopy
+			}
+			bar.Add(int(step))
 		}
-		fmt.Println(written)
+		if fileSize-sum != 0 {
+			step = fileSize - sum
+			_, errCopy := io.CopyN(copiedFile, file, step)
+			if errCopy != nil {
+				if errCopy == io.EOF {
+					break
+				}
+				return errCopy
+			}
+			bar.Add(int(step))
+		}
+		bar.Finish()
 	default:
-		written, errCopyN := io.CopyN(copiedFile, file, limit)
-		if errCopyN != nil {
-			return errCopyN
+		// copy limit number of bytes in file
+		for limit-sum < step {
+			written, errCopy := io.CopyN(copiedFile, file, step)
+			sum += written
+			if errCopy != nil {
+				if errCopy == io.EOF {
+					break
+				}
+				return errCopy
+			}
+			bar.Add(int(step))
 		}
-		fmt.Println(written)
+		if limit-sum != 0 {
+			step = limit - sum
+			_, errCopy := io.CopyN(copiedFile, file, step)
+			if errCopy != nil {
+				if errCopy == io.EOF {
+					break
+				}
+				return errCopy
+			}
+			bar.Add(int(step))
+		}
+		bar.Finish()
 	}
-	pb.Increment()
 	return nil
 }
