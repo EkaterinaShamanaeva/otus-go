@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"github.com/cheggaaa/pb/v3"
 )
 
 var (
@@ -18,5 +20,17 @@ func init() {
 
 func main() {
 	flag.Parse()
-	// Place your code here.
+	fmt.Println("inputs: ", from, to, limit, offset)
+
+	// start new bar
+	bar := pb.StartNew(100)
+
+	err := Copy(from, to, offset, limit, bar)
+	if err != nil {
+		fmt.Println("result: ", err)
+	}
+
+	// finish bar
+	bar.Finish()
+
 }
