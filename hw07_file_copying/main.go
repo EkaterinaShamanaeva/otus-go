@@ -19,9 +19,9 @@ func init() {
 
 func main() {
 	flag.Parse()
-
+	fmt.Println(from, to)
 	err := Copy(from, to, offset, limit)
 	if err != nil {
-		fmt.Errorf("copy failed with error %v", err)
+		fmt.Printf("copy failed with error %v", err)
 	}
 }
