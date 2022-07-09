@@ -5,8 +5,6 @@ import (
 	"io"
 	"os"
 	"time"
-
-	"github.com/cheggaaa/pb/v3"
 )
 
 var (
@@ -25,13 +23,16 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	defer file.Close()
 
 	// count of bytes in file <from>
-	fileInfo, errFileSize := file.Stat()
-	if errFileSize != nil {
-		return ErrUnsupportedFile
+	fileInfo, errFileInfo := file.Stat()
+	if errFileInfo != nil {
+		return errFileInfo
 	}
 	fileSize := fileInfo.Size()
 	if offset > fileSize {
 		return ErrOffsetExceedsFileSize
+	}
+	if !fileInfo.Mode().IsRegular() {
+		return ErrUnsupportedFile
 	}
 
 	// create output file
@@ -48,7 +49,9 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	bytesToCopy := defineBytesToCopy(fileSize, offset, limit)
 
 	// new progress bar
-	bar := pb.StartNew(int(bytesToCopy))
+	var bar Bar
+	bar.New(bytesToCopy)
+	defer bar.Finish()
 
 	// copy
 	var sum int64
@@ -57,7 +60,8 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	for bytesToCopy-sum > buffer {
 		written, errCopy := io.CopyN(copiedFile, file, buffer)
 		sum += written
-		bar.Add(int(buffer))
+		bar.Add(buffer)
+		// time.Sleep only to show progress bar process (should be deleted)
 		time.Sleep(time.Millisecond)
 		if errCopy != nil {
 			if errors.Is(errCopy, io.EOF) {
@@ -69,7 +73,8 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	if bytesToCopy-sum != 0 {
 		buffer = bytesToCopy - sum
 		_, errCopy := io.CopyN(copiedFile, file, buffer)
-		bar.Add(int(buffer))
+		bar.Add(buffer)
+		// time.Sleep only to show progress bar process (should be deleted)
 		time.Sleep(time.Millisecond)
 		if errCopy != nil {
 			if errors.Is(errCopy, io.EOF) {
@@ -78,7 +83,6 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 			return errCopy
 		}
 	}
-	bar.Finish()
 	return nil
 }
 
