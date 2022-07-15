@@ -4,38 +4,44 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"syscall"
 )
 
 // RunCmd runs a command + arguments (cmd) with environment variables from env.
 func RunCmd(cmd []string, env Environment) (returnCode int) {
+	childCommand := cmd[3]
+	childCommandParams := cmd[4:]
 
-	envVariables := make([]string, len(env))
-	index := 0
-	for key, value := range env {
-		if value.NeedRemove != true {
-			envVariables[index] = fmt.Sprintf("%s=%s", key, value.Value)
-			index++
-		}
-	}
-
-	childCommand := cmd[2]
-	fmt.Println(childCommand)
-	childCommandParams := cmd[3:]
 	command := exec.Command(childCommand, childCommandParams...)
 	command.Stdin = os.Stdin
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
-	command.Env = envVariables
-	if err := command.Run(); err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			waitStatus := exitError.Sys().(syscall.WaitStatus)
-			os.Exit(waitStatus.ExitStatus())
+
+	//fmt.Println("empty: ", len(env["EMPTY"].Value), env["EMPTY"].Value+"test")
+
+	for key, value := range env {
+		if value.NeedRemove != true {
+			if _, ok := os.LookupEnv(key); ok {
+				_ = os.Unsetenv(key)
+				err := os.Setenv(key, value.Value)
+				if err != nil {
+					fmt.Println("error", err, key, value.Value, len(value.Value))
+				}
+			}
+			_ = os.Setenv(key, value.Value)
 		} else {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(111)
+			if _, ok := os.LookupEnv(key); ok {
+				_ = os.Unsetenv(key)
+			}
 		}
 	}
-	os.Exit(0)
-	return
+	//fmt.Println(envVariables, len(envVariables))
+	command.Env = os.Environ()
+	//fmt.Println("env: ", command.Env)
+
+	err := command.Run()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	return 0
 }

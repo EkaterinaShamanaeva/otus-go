@@ -50,10 +50,11 @@ func ReadDir(dir string) (Environment, error) {
 		fileString := string(text)
 
 		if stringHasNullCharacter(fileString) {
-			fileString = strings.Replace(fileString, "\\x00", "\n", -1)
+			fileString = strings.Replace(fileString, "\x00", "\n", -1)
 		}
 
-		fileString = strings.TrimRight(fileString, "\t\n")
+		fileString = strings.TrimRight(fileString, " ")
+		fileString = strings.TrimRight(fileString, "\n")
 
 		if len(fileString) == 0 {
 			envMap[file.Name()] = EnvValue{Value: "", NeedRemove: false}
