@@ -34,10 +34,8 @@ func RunCmd(cmd []string, env Environment) (returnCode int) {
 				fmt.Fprintln(os.Stderr, err)
 				return exitCodeUnsuccessful
 			}
-		} else {
-			if _, ok := os.LookupEnv(key); ok {
-				_ = os.Unsetenv(key)
-			}
+		} else if _, ok := os.LookupEnv(key); ok {
+			_ = os.Unsetenv(key)
 		}
 	}
 
