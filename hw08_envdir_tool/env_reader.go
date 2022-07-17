@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -17,40 +17,45 @@ type EnvValue struct {
 	NeedRemove bool
 }
 
+var ErrUnsupportedFile = errors.New("file name contains '='")
+
 // ReadDir reads a specified directory and returns map of env variables.
 // Variables represented as files where filename is name of variable, file first line is a value.
 func ReadDir(dir string) (Environment, error) {
+	// create map of env variables
 	envMap := make(Environment)
-
 	// read directory
-	files, err := ioutil.ReadDir(dir)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(111)
+	files, errReadDir := ioutil.ReadDir(dir)
+	if errReadDir != nil {
+		return nil, errReadDir
 	}
 	// read files in the directory
 	for _, file := range files {
-
+		// checks
 		if file.IsDir() {
 			continue
 		}
+
+		if strings.IndexByte(file.Name(), '=') != -1 {
+			return nil, ErrUnsupportedFile
+		}
+
 		if file.Size() == 0 {
 			envMap[file.Name()] = EnvValue{Value: "", NeedRemove: true}
 			continue
 		}
-		openedFile, _ := os.Open(filepath.Join(dir, file.Name()))
 
+		// read the first line
+		openedFile, _ := os.Open(filepath.Join(dir, file.Name()))
 		text, _, errReadFile := bufio.NewReader(openedFile).ReadLine()
 		if errReadFile != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(111)
+			return nil, errReadFile
 		}
-
 		_ = openedFile.Close()
 		fileString := string(text)
 
-		if stringHasNullCharacter(fileString) {
-			fileString = strings.Replace(fileString, "\x00", "\n", -1)
+		if strings.IndexByte(fileString, '\x00') != -1 {
+			fileString = strings.ReplaceAll(fileString, "\x00", "\n")
 		}
 
 		fileString = strings.TrimRight(fileString, " ")
@@ -65,9 +70,4 @@ func ReadDir(dir string) (Environment, error) {
 	}
 
 	return envMap, nil
-}
-
-func stringHasNullCharacter(s string) bool {
-	i := strings.IndexByte(s, '\x00')
-	return i != -1
 }
