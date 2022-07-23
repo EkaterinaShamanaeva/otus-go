@@ -2,8 +2,11 @@ package hw09structvalidator
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type UserRole string
@@ -42,10 +45,55 @@ func TestValidate(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			// Place your code here.
+			User{
+				ID:     "aaaaaa", // incorrect
+				Name:   "Ivan",
+				Age:    10, // incorrect
+				Email:  "ivanovyandex.ru",
+				Role:   "admin",
+				Phones: []string{"1111111", "222222"}, // incorrect
+				meta:   nil,
+			},
+			ValidationErrors{
+				ValidationError{
+					Field: "ID",
+					Err:   ErrIncorrectLenOfString,
+				}, ValidationError{
+					Field: "Age",
+					Err:   ErrMin,
+				}, ValidationError{
+					Field: "Email",
+					Err:   ErrIncorrectContent,
+				}, ValidationError{
+					Field: "Phones",
+					Err:   ErrIncorrectLenOfString,
+				},
+			},
 		},
-		// ...
-		// Place your code here.
+		{
+			App{
+				Version: "v1.015",
+			},
+			ValidationErrors{ValidationError{
+				Field: "Version",
+				Err:   ErrIncorrectLenOfString,
+			}},
+		},
+		{
+			Token{
+				Header:    []byte("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"),
+				Payload:   []byte("eyJ1c2VySWQiOiJiMDhmODZhZi0zNWRhLTQ4ZjItOGZhYi1jZWYzOTA0NjYwYmQifQ"),
+				Signature: []byte("-xN_h82PHVTCMA9vdoHrcZxH-x5mb11y1537t3rGzcM"),
+			},
+			nil,
+		},
+		{
+			Response{
+				Code: 200,
+				Body: "",
+			},
+			nil,
+		},
 	}
 
 	for i, tt := range tests {
@@ -53,7 +101,22 @@ func TestValidate(t *testing.T) {
 			tt := tt
 			t.Parallel()
 
-			// Place your code here.
+			err := Validate(tt.in)
+			if tt.expectedErr == nil {
+				require.NoError(t, err)
+			} else {
+				require.NotEmpty(t, err)
+				var validationEr ValidationErrors
+				if errors.As(err, &validationEr) {
+					var expErrs ValidationErrors
+					require.ErrorAs(t, tt.expectedErr, &expErrs)
+					for j, valErr := range validationEr {
+						require.ErrorIs(t, valErr, validationEr[j])
+					}
+				} else {
+					require.ErrorIs(t, err, tt.expectedErr)
+				}
+			}
 			_ = tt
 		})
 	}
