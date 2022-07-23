@@ -14,7 +14,7 @@ const (
 )
 
 var (
-	reMax     = regexp.MustCompile(maxValue)
+	reMax     = regexp.MustCompile(maxValue) // Compile -> MustCompile (corrected after lint)
 	reMin     = regexp.MustCompile(minValue)
 	reInLimit = regexp.MustCompile(inLimit)
 	reInt     = regexp.MustCompile(valueInt)
@@ -48,6 +48,7 @@ func intValidate(n int, tag string) []error {
 
 		res := reInt.FindAllStringSubmatch(s, -1)
 
+		// compare with set elements
 		flag := false
 		for _, match := range res {
 			for _, val := range match {

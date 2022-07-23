@@ -14,7 +14,7 @@ const (
 )
 
 var (
-	reExp = regexp.MustCompile(regExp)
+	reExp = regexp.MustCompile(regExp) // Compile -> MustCompile (corrected after lint)
 	reLen = regexp.MustCompile(lenField)
 	reIn  = regexp.MustCompile(inField)
 	re    = regexp.MustCompile(value)
@@ -50,6 +50,7 @@ func stringValidate(str string, tag string) []error {
 			s = s[:i]
 		}
 		res := re.FindAllStringSubmatch(s, -1)
+		// compare with set elements
 		flag := false
 		for _, match := range res {
 			for _, word := range match {

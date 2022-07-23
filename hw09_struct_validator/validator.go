@@ -21,10 +21,10 @@ type ValidationErrors []ValidationError
 var (
 	ErrNotStruct            = errors.New("interface{} is not a struct")
 	ErrIncorrectLenOfString = errors.New("incorrect len of the string")
-	ErrIncorrectContent     = errors.New("incorrect content")
-	ErrIncorrectInCond      = errors.New("incorrect IN:v1,v2,v3 condition")
-	ErrMax                  = errors.New("value is bigger then max")
-	ErrMin                  = errors.New("value is lower then min")
+	ErrIncorrectContent     = errors.New("does not match regular expression")
+	ErrIncorrectInCond      = errors.New("not included in the set")
+	ErrMax                  = errors.New("value is bigger then max allowable value")
+	ErrMin                  = errors.New("value is lower then min allowable value")
 )
 
 func (v ValidationErrors) Error() string {
@@ -56,7 +56,7 @@ func Validate(v interface{}) error {
 		if f.Tag != "" {
 			if f.Tag.Get("validate") != "" {
 				tag := f.Tag.Get("validate")
-				switch {
+				switch { // switch f.Type().Kind() -> switch (corrected after lint)
 				case f.Type.Kind() == reflect.String:
 					err := stringPrepareAndValidate(f, vValue.Field(i), tag)
 					errAll = append(errAll, err...)

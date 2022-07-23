@@ -37,6 +37,11 @@ type (
 		Code int    `validate:"in:200,404,500"`
 		Body string `json:"omitempty"`
 	}
+
+	MyUser struct {
+		Name string
+		Age  int `validate:"min:18|max:50|len:2|in:18,19,20,21,22"`
+	}
 )
 
 func TestValidate(t *testing.T) {
@@ -48,8 +53,8 @@ func TestValidate(t *testing.T) {
 			User{
 				ID:     "aaaaaa", // incorrect
 				Name:   "Ivan",
-				Age:    10, // incorrect
-				Email:  "ivanovyandex.ru",
+				Age:    10,                // incorrect
+				Email:  "ivanovyandex.ru", // incorrect
 				Role:   "admin",
 				Phones: []string{"1111111", "222222"}, // incorrect
 				meta:   nil,
@@ -72,7 +77,7 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			App{
-				Version: "v1.015",
+				Version: "v1.015", // incorrect
 			},
 			ValidationErrors{ValidationError{
 				Field: "Version",
@@ -93,6 +98,31 @@ func TestValidate(t *testing.T) {
 				Body: "",
 			},
 			nil,
+		},
+		{
+			Response{
+				Code: 201, // incorrect
+				Body: "",
+			},
+			ValidationErrors{ValidationError{
+				Field: "Code",
+				Err:   ErrIncorrectInCond,
+			}},
+		},
+		{
+			MyUser{
+				Name: "Ivan",
+				Age:  145,
+			}, ValidationErrors{ValidationError{
+				Field: "Age",
+				Err:   ErrMax,
+			}, ValidationError{
+				Field: "Age",
+				Err:   ErrIncorrectLenOfString,
+			}, ValidationError{
+				Field: "Age",
+				Err:   ErrIncorrectInCond,
+			}},
 		},
 	}
 
@@ -120,4 +150,10 @@ func TestValidate(t *testing.T) {
 			_ = tt
 		})
 	}
+}
+
+func TestNotStruct(t *testing.T) {
+	var in interface{} = 2
+	err := Validate(in)
+	require.ErrorIs(t, err, ErrNotStruct)
 }
