@@ -32,7 +32,7 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 type users [100_000]User
 
 func getUsers(r io.Reader) (result users, err error) {
-	content, err := ioutil.ReadAll(r)
+	content, err := ioutil.ReadAll(r) // -> io ? // читать по строке (content, lines,...)
 	if err != nil {
 		return
 	}
@@ -42,7 +42,7 @@ func getUsers(r io.Reader) (result users, err error) {
 		var user User
 		if err = json.Unmarshal([]byte(line), &user); err != nil {
 			return
-		}
+		} // -> easyJSON?
 		result[i] = user
 	}
 	return
@@ -57,10 +57,11 @@ func countDomains(u users, domain string) (DomainStat, error) {
 			return nil, err
 		}
 
-		if matched {
-			num := result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])]
-			num++
-			result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])] = num
+		if matched { // change ?
+			// num := result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])]
+			// num++
+			// result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])] = num
+			result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])]++
 		}
 	}
 	return result, nil
