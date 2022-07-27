@@ -69,7 +69,8 @@ func TestGetUsers(t *testing.T) {
 		Password: "cmEPhX8",
 		Address:  "Butterfield Junction 74",
 	}
-	expectedUsers := users{userFirst, userSecond, userThird}
+	// expectedUsers := users{userFirst, userSecond, userThird}
+	expectedUsers := email{userFirst.Email, userSecond.Email, userThird.Email}
 
 	var file *os.File
 	file, err := os.OpenFile("testdata/get_users_test.dat", os.O_RDONLY, 0)
@@ -115,7 +116,8 @@ func TestCountDomains(t *testing.T) {
 		Password: "71kuz3gA5w",
 		Address:  "Monterey Park 39",
 	}
-	users := users{userFirst, userSecond, userThird}
+	// users := users{userFirst, userSecond, userThird}
+	users := email{userFirst.Email, userSecond.Email, userThird.Email}
 	domainCom := "com"
 
 	expected := make(DomainStat)

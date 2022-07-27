@@ -2,10 +2,10 @@ package hw10programoptimization
 
 import (
 	"bufio"
-	"encoding/json"
+	"github.com/valyala/fastjson"
+
 	"fmt"
 	"io"
-	"regexp"
 	"strings"
 )
 
@@ -29,57 +29,34 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 	return countDomains(u, domain)
 }
 
-type users [100_000]User
+type email []string
 
-func getUsers(r io.Reader) (result users, err error) {
-	//content, err := ioutil.ReadAll(r) // -> io ? // читать по строке (content, lines,...)
-	//if err != nil {
-	//	return
-	//}
+func getUsers(r io.Reader) (email, error) { //(result users, err error) {
+	result := make(email, 0, 100000)
 
-	//lines := strings.Split(string(content), "\n")
-	//var lines []string
-	i := 0
-	for {
-		cnt, errCnt := bufio.NewReader(r).ReadString('\n')
-		fmt.Println(cnt)
-		if errCnt != nil {
-			break
+	scanner := bufio.NewScanner(r)
+	var p fastjson.Parser
+	for scanner.Scan() {
+		v, errF := p.Parse(scanner.Text())
+		if errF != nil {
+			return nil, errF
 		}
-		var user User
-		if err = json.Unmarshal([]byte(cnt), &user); err != nil {
-			return
-		} // -> easyJSON?
-		result[i] = user
-		i++
-		//lines = append(lines, cnt)
-	}
+		result = append(result, string(v.GetStringBytes("Email")))
 
-	//for i, line := range lines {
-	//	var user User
-	//	if err = json.Unmarshal([]byte(line), &user); err != nil {
-	//return
-	//} // -> easyJSON?
-	//	result[i] = user
-	//}
-	return
+	}
+	return result, nil
 }
 
-func countDomains(u users, domain string) (DomainStat, error) {
+func countDomains(u email, domain string) (DomainStat, error) {
 	result := make(DomainStat)
 
-	for _, user := range u {
-		matched, err := regexp.Match("\\."+domain, []byte(user.Email))
-		if err != nil {
-			return nil, err
-		}
+	for _, mail := range u {
+		matched := strings.Contains(mail, "."+domain)
 
-		if matched { // change ?
-			// num := result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])]
-			// num++
-			// result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])] = num
-			result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])]++
+		if matched {
+			result[strings.ToLower(strings.SplitN(mail, "@", 2)[1])]++
 		}
 	}
+
 	return result, nil
 }

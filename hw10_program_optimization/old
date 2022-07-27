@@ -1,0 +1,11 @@
+goos: darwin
+goarch: amd64
+pkg: github.com/EkaterinaShamanaeva/otus-go/hw10_program_optimization
+cpu: Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz
+BenchmarkStates-4   	       1	1040770941 ns/op	322204024 B/op	 3145415 allocs/op
+BenchmarkStates-4   	       2	 801546103 ns/op	322214180 B/op	 3145415 allocs/op
+BenchmarkStates-4   	       1	1058339734 ns/op	322196504 B/op	 3145417 allocs/op
+BenchmarkStates-4   	       2	 872955647 ns/op	322232688 B/op	 3145415 allocs/op
+BenchmarkStates-4   	       1	1262305751 ns/op	322269624 B/op	 3145419 allocs/op
+PASS
+ok  	github.com/EkaterinaShamanaeva/otus-go/hw10_program_optimization	13.801s
