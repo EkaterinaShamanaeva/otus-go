@@ -2,11 +2,11 @@ package hw10programoptimization
 
 import (
 	"bufio"
-	"github.com/valyala/fastjson"
-
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/valyala/fastjson"
 )
 
 type User struct {
@@ -21,17 +21,17 @@ type User struct {
 
 type DomainStat map[string]int
 
+type email []string
+
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
-	u, err := getUsers(r)
+	u, err := getUserEmails(r)
 	if err != nil {
 		return nil, fmt.Errorf("get users error: %w", err)
 	}
 	return countDomains(u, domain)
 }
 
-type email []string
-
-func getUsers(r io.Reader) (email, error) { //(result users, err error) {
+func getUserEmails(r io.Reader) (email, error) {
 	result := make(email, 0, 100000)
 
 	scanner := bufio.NewScanner(r)
@@ -42,7 +42,6 @@ func getUsers(r io.Reader) (email, error) { //(result users, err error) {
 			return nil, errF
 		}
 		result = append(result, string(v.GetStringBytes("Email")))
-
 	}
 	return result, nil
 }

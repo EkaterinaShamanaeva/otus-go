@@ -42,35 +42,8 @@ func TestGetDomainStat(t *testing.T) {
 }
 
 func TestGetUsers(t *testing.T) {
-	userFirst := User{
-		ID:       1,
-		Name:     "Howard Mendoza",
-		Username: "0Oliver",
-		Email:    "aliquid_qui_ea@Browsedrive.gov",
-		Phone:    "6-866-899-36-79",
-		Password: "InAQJvsq",
-		Address:  "Blackbird Place 25",
-	}
-	userSecond := User{
-		ID:       2,
-		Name:     "Justin Oliver Jr. Sr. I II III IV V MD DDS PhD DVM",
-		Username: "oPerez",
-		Email:    "MelissaGutierrez@Twinte.biz",
-		Phone:    "106-05-18",
-		Password: "f00GKr9i",
-		Address:  "Oak Valley Lane 19",
-	}
-	userThird := User{
-		ID:       3,
-		Name:     "Brian Olson",
-		Username: "non_quia_id",
-		Email:    "FrancesEllis@Quinu.edu",
-		Phone:    "237-75-34",
-		Password: "cmEPhX8",
-		Address:  "Butterfield Junction 74",
-	}
-	// expectedUsers := users{userFirst, userSecond, userThird}
-	expectedUsers := email{userFirst.Email, userSecond.Email, userThird.Email}
+	expectedUserEmails := email{"aliquid_qui_ea@Browsedrive.gov",
+		"MelissaGutierrez@Twinte.biz", "FrancesEllis@Quinu.edu"}
 
 	var file *os.File
 	file, err := os.OpenFile("testdata/get_users_test.dat", os.O_RDONLY, 0)
@@ -78,52 +51,24 @@ func TestGetUsers(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	resultGetUsers, errGetUsers := getUsers(file)
+	resultGetUsers, errGetUsers := getUserEmails(file)
 
 	if err = file.Close(); err != nil {
 		log.Fatal(err)
 	}
 
 	require.NoError(t, errGetUsers)
-	require.Equal(t, expectedUsers, resultGetUsers)
+	require.Equal(t, expectedUserEmails, resultGetUsers)
 }
 
 func TestCountDomains(t *testing.T) {
-	userFirst := User{
-		ID:       1,
-		Name:     "Howard Mendoza",
-		Username: "0Oliver",
-		Email:    "aliquid_qui_ea@Browsedrive.gov",
-		Phone:    "6-866-899-36-79",
-		Password: "InAQJvsq",
-		Address:  "Blackbird Place 25",
-	}
-	userSecond := User{
-		ID:       2,
-		Name:     "Jesse Vasquez",
-		Username: "qRichardson",
-		Email:    "mLynch@broWsecat.com",
-		Phone:    "9-373-949-64-00",
-		Password: "SiZLeNSGn",
-		Address:  "Fulton Hill 80",
-	}
-	userThird := User{
-		ID:       3,
-		Name:     "Clarence Olson",
-		Username: "RachelAdams",
-		Email:    "RoseSmith@Browsecat.com",
-		Phone:    "988-48-97",
-		Password: "71kuz3gA5w",
-		Address:  "Monterey Park 39",
-	}
-	// users := users{userFirst, userSecond, userThird}
-	users := email{userFirst.Email, userSecond.Email, userThird.Email}
+	userEmails := email{"aliquid_qui_ea@Browsedrive.gov", "mLynch@broWsecat.com", "RoseSmith@Browsecat.com"}
 	domainCom := "com"
 
 	expected := make(DomainStat)
 	expected["browsecat.com"] = 2
 
-	result, err := countDomains(users, domainCom)
+	result, err := countDomains(userEmails, domainCom)
 	require.NoError(t, err)
 	require.Equal(t, expected, result)
 }
