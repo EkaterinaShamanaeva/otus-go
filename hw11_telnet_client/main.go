@@ -32,7 +32,8 @@ func main() {
 
 	// run
 	if err := runTelnet(clientTel); err != nil {
-		log.Fatal(err)
+		log.Printf("failed with error: %s", err)
+		os.Exit(1)
 	}
 }
 
