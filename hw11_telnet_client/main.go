@@ -41,10 +41,8 @@ func runTelnet(clientTel TelnetClient) error {
 	if err := clientTel.Connect(); err != nil {
 		return fmt.Errorf("connection error %w", err)
 	}
-	defer func(clientTel TelnetClient) {
-		if err := clientTel.Close(); err != nil {
-			log.Fatalf("Error while close connection: %s", err)
-		}
+	defer func(clientTel TelnetClient) error {
+		return clientTel.Close()
 	}(clientTel)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
