@@ -54,12 +54,10 @@ func (cl *client) Send() error {
 			return fmt.Errorf("...Connection was closed by peer")
 		}
 	}
-	if err := scanner.Err(); err != nil {
-		return err
-	}
+
 	fmt.Fprintln(os.Stderr, "...EOF")
 
-	return nil
+	return scanner.Err()
 }
 
 func (cl *client) Receive() error {
@@ -70,9 +68,6 @@ func (cl *client) Receive() error {
 
 		fmt.Fprintln(cl.out, text)
 	}
-	if err := scanner.Err(); err != nil {
-		return err
-	}
 
-	return nil
+	return scanner.Err()
 }
