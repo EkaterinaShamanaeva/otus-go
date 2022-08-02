@@ -40,7 +40,7 @@ func runTelnet(clientTel TelnetClient) error {
 	// connect
 	if err := clientTel.Connect(); err != nil {
 		log.Printf("Connection error: %s", err)
-		return fmt.Errorf("connection error %s", err)
+		return fmt.Errorf("connection error %w", err)
 	}
 	defer func(clientTel TelnetClient) {
 		err := clientTel.Close()
