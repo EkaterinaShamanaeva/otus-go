@@ -41,25 +41,36 @@ func runTelnet(clientTel TelnetClient) error {
 	if err := clientTel.Connect(); err != nil {
 		return fmt.Errorf("connection error %w", err)
 	}
-	defer clientTel.Close()
+	defer func(clientTel TelnetClient) error {
+		err := clientTel.Close()
+		if err != nil {
+			log.Printf("Error while close connection: %s", err)
+			return err
+		}
+		return nil
+	}(clientTel)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	go func() {
+	go func() error {
 		err := clientTel.Send()
 		if err != nil {
-			log.Fatalf("Error reading from channel. Error: %s", err)
+			log.Printf("Error reading from channel. Error: %s", err)
+			return err
 		}
 		stop()
+		return nil
 	}()
 
-	go func() {
+	go func() error {
 		err := clientTel.Receive()
 		if err != nil {
-			log.Fatalf("Error reading from channel. Error: %s", err)
+			log.Printf("Error reading from channel. Error: %s", err)
+			return err
 		}
 		stop()
+		return nil
 	}()
 
 	<-ctx.Done()
