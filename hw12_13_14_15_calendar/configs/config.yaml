@@ -1,0 +1,16 @@
+# Logger config
+logger:
+  level: "INFO"
+  path: "./bin/logfile.log"
+# Server config
+server:
+  host: "127.0.0.1"
+  port: "8080"
+# Database config
+database:
+  host: "127.0.0.1"
+  port: "5423"
+  username: "root"
+  password: "password"
+  name: "calendar"
+storage: "SQL"
