@@ -148,3 +148,7 @@ func (s *Storage) GetEventsPerMonth(ctx context.Context, beginDate time.Time) ([
 	}
 	return eventsPerMonth, nil
 }
+
+func (s *Storage) Close(ctx context.Context) error {
+	return nil
+}

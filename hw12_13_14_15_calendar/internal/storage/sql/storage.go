@@ -13,6 +13,12 @@ import (
 	"time"
 )
 
+var (
+	ErrBusyTime      = errors.New("this time is already taken by another event")
+	ErrAlreadyExist  = errors.New("this event has already exist")
+	ErrEventNotExist = errors.New("event does not exist")
+)
+
 type Storage struct {
 	Pool *pgxpool.Pool
 }
@@ -21,7 +27,7 @@ func New() *Storage {
 	return &Storage{Pool: nil}
 }
 
-func Connect(ctx context.Context, dsn string) (dbpool *pgxpool.Pool, err error) { // TODO add config
+func Connect(ctx context.Context, dsn string) (dbpool *pgxpool.Pool, err error) {
 	conn, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		err = fmt.Errorf("failed to parse pg config: %w", err)
@@ -44,9 +50,17 @@ func Connect(ctx context.Context, dsn string) (dbpool *pgxpool.Pool, err error) 
 }
 
 func (s *Storage) CreateEvent(ctx context.Context, event *storage.Event) error {
+	events, err := s.GetEventsPerDay(ctx, event.TimeStart)
+	for _, ev := range events {
+		if ev.ID == event.ID {
+			return ErrAlreadyExist
+		} else if ev.TimeStart == event.TimeStart || ev.TimeStart.Sub(event.TimeStart) < ev.Duration {
+			return ErrBusyTime
+		}
+	}
 	query := `INSERT INTO events(id, title, start_date, duration, description, user_id, notify_before)
 				VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id; `
-	_, err := s.Pool.Exec(ctx, query, event.ID, event.Title, event.TimeStart, event.Duration,
+	_, err = s.Pool.Exec(ctx, query, event.ID, event.Title, event.TimeStart, event.Duration,
 		event.Description, event.UserID, event.NotifyBeforeDays)
 	if err != nil {
 		return err
@@ -91,7 +105,7 @@ func (s *Storage) GetEventsPerDay(ctx context.Context, day time.Time) ([]storage
 	err := pgxscan.Select(ctx, s.Pool, &eventsByQuery, query, day)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, memorystorage.ErrEventNotExist
+			return nil, ErrEventNotExist
 		}
 		return nil, err
 	}
@@ -134,4 +148,9 @@ func (s *Storage) GetEventsPerMonth(ctx context.Context, beginDate time.Time) ([
 		eventsRes = append(eventsRes, *ev)
 	}
 	return eventsRes, nil
+}
+
+func (s *Storage) Close(ctx context.Context) error {
+	s.Pool.Close()
+	return nil
 }

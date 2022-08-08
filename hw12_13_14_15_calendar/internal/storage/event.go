@@ -24,4 +24,5 @@ type Storage interface {
 	GetEventsPerDay(ctx context.Context, day time.Time) ([]Event, error)
 	GetEventsPerWeek(ctx context.Context, beginDate time.Time) ([]Event, error)
 	GetEventsPerMonth(ctx context.Context, beginDate time.Time) ([]Event, error)
+	Close(ctx context.Context) error
 }

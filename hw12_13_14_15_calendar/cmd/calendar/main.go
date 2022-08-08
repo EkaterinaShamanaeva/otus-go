@@ -6,7 +6,7 @@ import (
 	"fmt"
 	configuration "github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/config"
 	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/logger"
-	sqlstorage "github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/storage/sql"
+	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/storage/init_storage"
 	"github.com/pressly/goose"
 	"log"
 	"os"
@@ -48,20 +48,18 @@ func main() {
 		log.Fatalf("Goose error %v", err)
 	}
 
+	ctx := context.Background()
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", config.Database.Username,
 		config.Database.Password, config.Database.Host, config.Database.Port, config.Database.Name,
 		config.Database.SSLMode)
 
-	storage := sqlstorage.New()
-	pool, err := sqlstorage.Connect(context.Background(), dsn)
+	storage, err := init_storage.NewStorage(ctx, config.Storage, dsn)
 	if err != nil {
-		log.Fatalf("%s: failed to init DB connection", err)
+		logg.Error("failed to connect DB: " + err.Error())
 	}
-	defer pool.Close()
+	defer storage.Close(ctx)
 
-	storage.Pool = pool
-
-	// storage := memorystorage.New()
+	logg.Info("DB connected...")
 
 	calendar := app.New(logg, storage)
 

@@ -21,7 +21,7 @@ func New(level string, path string) (*Logger, error) {
 		return nil, err
 	}
 
-	logrus.SetOutput(io.MultiWriter(os.Stdout, loggerFile))
+	logger.SetOutput(io.MultiWriter(os.Stdout, loggerFile))
 
 	loggerLevel, err := logrus.ParseLevel(level)
 	if err != nil {
