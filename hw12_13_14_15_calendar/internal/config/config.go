@@ -1,7 +1,7 @@
 package config
 
 import (
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2" //nolint:typecheck
 	"os"
 )
 
@@ -17,6 +17,7 @@ type Config struct {
 		Username string `yaml:"username"`
 		Password string `yaml:"password"`
 		Name     string `yaml:"name"`
+		SSLMode  string `yaml:"SSLMode"`
 	} `yaml:"database"`
 	Storage string `yaml:"storage"`
 }
@@ -39,7 +40,7 @@ func (config *Config) BuildConfig(path string) error {
 	defer f.Close()
 
 	// Init new YAML decode
-	d := yaml.NewDecoder(f)
+	d := yaml.NewDecoder(f) // nolint:typecheck
 
 	// Start YAML decoding from file
 	if err = d.Decode(&config); err != nil {

@@ -2,9 +2,13 @@ package internalhttp
 
 import (
 	"context"
+	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/logger"
+	"net/http"
 )
 
 type Server struct { // TODO
+	server *http.Server
+	logg   *logger.Logger
 }
 
 type Logger interface { // TODO

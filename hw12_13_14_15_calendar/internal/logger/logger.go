@@ -15,7 +15,7 @@ type Logger struct {
 func New(level string, path string) (*Logger, error) {
 	logger := logrus.New()
 
-	loggerFile, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+	loggerFile, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		err = fmt.Errorf("error during the opening log loggerFile: %w", err)
 		return nil, err

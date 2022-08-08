@@ -3,6 +3,11 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	configuration "github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/config"
+	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/logger"
+	sqlstorage "github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/storage/sql"
+	"github.com/pressly/goose"
 	"log"
 	"os"
 	"os/signal"
@@ -10,17 +15,13 @@ import (
 	"time"
 
 	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/app"
-	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/logger"
 	internalhttp "github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/storage/memory"
 )
 
 var configFile string
 
 func init() {
-	// TODO change in Makefile toml -> yaml!
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.yaml", "Path to configuration file")
-	// flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "configs/config.yaml", "Path to configuration file")
 }
 
 func main() {
@@ -31,7 +32,8 @@ func main() {
 		return
 	}
 
-	config := NewConfig() // TODO import internal/config
+	config := configuration.NewConfig()
+
 	if err := config.BuildConfig(configFile); err != nil {
 		log.Fatalf("Config error: %v", err)
 	}
@@ -41,7 +43,26 @@ func main() {
 		log.Fatalf("Logger error: %v", err)
 	}
 
-	storage := memorystorage.New() // TODO change according to in-memory/sql
+	err = goose.SetDialect("postgres") // TODO
+	if err != nil {
+		log.Fatalf("Goose error %v", err)
+	}
+
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", config.Database.Username,
+		config.Database.Password, config.Database.Host, config.Database.Port, config.Database.Name,
+		config.Database.SSLMode)
+
+	storage := sqlstorage.New()
+	pool, err := sqlstorage.Connect(context.Background(), dsn)
+	if err != nil {
+		log.Fatalf("%s: failed to init DB connection", err)
+	}
+	defer pool.Close()
+
+	storage.Pool = pool
+
+	// storage := memorystorage.New()
+
 	calendar := app.New(logg, storage)
 
 	server := internalhttp.NewServer(logg, calendar)

@@ -1,7 +1,7 @@
 # Logger config
 logger:
   level: "INFO"
-  path: "./bin/logfile.log"
+  path: "logfile.log"
 # Server config
 server:
   host: "127.0.0.1"
@@ -9,8 +9,9 @@ server:
 # Database config
 database:
   host: "127.0.0.1"
-  port: "5423"
-  username: "root"
+  port: "5432"
+  username: "postgres"
   password: "password"
   name: "calendar"
+  SSLMode: "disable"
 storage: "SQL"
