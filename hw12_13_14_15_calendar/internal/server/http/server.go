@@ -2,29 +2,36 @@ package internalhttp
 
 import (
 	"context"
-	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/logger"
+	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"time"
 )
 
-type Server struct { // TODO
+type Server struct { // TODO: add Application
 	server *http.Server
 	router *httprouter.Router
-	logg   *logger.Logger
+	logg   Logger
 }
 
-// type Logger interface { // TODO
-// }
+type Logger interface {
+	Info(msg string)
+	Error(msg string)
+	Warn(msg string)
+	Debug(msg string)
+}
 
-// type Application interface { // TODO
-// }
+type Application interface { // TODO implement
+}
 
-func NewServer(logger *logger.Logger) *Server { // app Application
+func NewServer(logger Logger) *Server { // app Application
 	serv := &Server{logg: logger}
 	serv.router = httprouter.New()
 
-	serv.router.GET("/", StartPage)
+	serv.router.GET("/", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		text := "Hello world!"
+		fmt.Fprint(writer, text)
+	})
 
 	return serv
 }
@@ -37,8 +44,18 @@ func (s *Server) Start(ctx context.Context, addr string) error {
 		WriteTimeout: 5 * time.Second,
 		ReadTimeout:  5 * time.Second,
 	}
-	// <-ctx.Done()
-	if err := s.server.ListenAndServe(); err != nil {
+
+	errChan := make(chan error)
+
+	go func() {
+		if err := s.server.ListenAndServe(); err != nil {
+			errChan <- err
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+	case err := <-errChan:
 		return err
 	}
 	return nil
@@ -51,5 +68,3 @@ func (s *Server) Stop(ctx context.Context) error {
 	}
 	return nil
 }
-
-// TODO

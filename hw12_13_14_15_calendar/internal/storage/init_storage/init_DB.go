@@ -16,7 +16,6 @@ func NewStorage(ctx context.Context, storageType string, dsn string) (storage.St
 		if err != nil {
 			return nil, err
 		}
-		// defer pool.Close()
 		storageSQL.Pool = pool
 		db = storageSQL
 	default:

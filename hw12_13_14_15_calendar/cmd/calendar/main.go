@@ -43,6 +43,7 @@ func main() {
 	}
 
 	ctx := context.Background()
+
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", config.Database.Username,
 		config.Database.Password, config.Database.Host, config.Database.Port, config.Database.Name,
 		config.Database.SSLMode)
@@ -55,10 +56,6 @@ func main() {
 
 	logg.Info("DB connected...")
 
-	//calendar := app.New(logg, storage)
-
-	// server := internalhttp.NewServer(logg, calendar)
-	
 	server := internalhttp.NewServer(logg)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
@@ -71,12 +68,11 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 
-		if err := server.Stop(ctx); err != nil {
+		if err = server.Stop(ctx); err != nil {
 			logg.Error("failed to stop http server: " + err.Error())
 		}
 	}()
 
-	logg.Info("calendar is running...")
 	addrServer := net.JoinHostPort(config.Server.Host, config.Server.Port)
 	if err = server.Start(ctx, addrServer); err != nil {
 		logg.Error("failed to start http server: " + err.Error())
