@@ -7,14 +7,13 @@ import (
 	configuration "github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/config"
 	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/logger"
 	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/storage/init_storage"
-	"github.com/pressly/goose"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/app"
 	internalhttp "github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/server/http"
 )
 
@@ -43,11 +42,6 @@ func main() {
 		log.Fatalf("Logger error: %v", err)
 	}
 
-	err = goose.SetDialect("postgres") // TODO
-	if err != nil {
-		log.Fatalf("Goose error %v", err)
-	}
-
 	ctx := context.Background()
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", config.Database.Username,
 		config.Database.Password, config.Database.Host, config.Database.Port, config.Database.Name,
@@ -61,9 +55,11 @@ func main() {
 
 	logg.Info("DB connected...")
 
-	calendar := app.New(logg, storage)
+	//calendar := app.New(logg, storage)
 
-	server := internalhttp.NewServer(logg, calendar)
+	// server := internalhttp.NewServer(logg, calendar)
+	
+	server := internalhttp.NewServer(logg)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -81,8 +77,8 @@ func main() {
 	}()
 
 	logg.Info("calendar is running...")
-
-	if err := server.Start(ctx); err != nil {
+	addrServer := net.JoinHostPort(config.Server.Host, config.Server.Port)
+	if err = server.Start(ctx, addrServer); err != nil {
 		logg.Error("failed to start http server: " + err.Error())
 		cancel()
 		os.Exit(1) //nolint:gocritic

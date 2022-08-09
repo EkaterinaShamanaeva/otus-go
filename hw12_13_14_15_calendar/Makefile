@@ -1,11 +1,14 @@
+BINDIR := "./bin"
 BIN := "./bin/calendar"
 DOCKER_IMG="calendar:develop"
+MIGRATOR := "$(BINDIR)/db_migrator"
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
 build:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
+	go build -v -o $(MIGRATOR) -ldflags "$(LDFLAGS)" ./cmd/db_migrator
 
 run: build
 	$(BIN) -config ./configs/config.yaml
@@ -30,5 +33,8 @@ install-lint-deps:
 
 lint: install-lint-deps
 	golangci-lint run ./...
+
+migrate:
+	$(MIGRATOR) -config ./configs/config.yaml -dir=./migrations up
 
 .PHONY: build run build-img run-img version test lint
