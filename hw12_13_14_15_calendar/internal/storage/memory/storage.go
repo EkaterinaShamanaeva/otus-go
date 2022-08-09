@@ -17,13 +17,13 @@ var (
 )
 
 type Storage struct {
-	mu        sync.RWMutex // TODO sync.Mutex ?
+	mu        sync.Mutex
 	mapEvents map[uuid.UUID]storage.Event
 }
 
 func New() *Storage {
 	return &Storage{
-		mu:        sync.RWMutex{},
+		mu:        sync.Mutex{},
 		mapEvents: make(map[uuid.UUID]storage.Event),
 	}
 }
@@ -33,8 +33,8 @@ func (s *Storage) CreateEvent(ctx context.Context, event *storage.Event) error {
 	case <-ctx.Done():
 		return ErrCanceledByContext
 	default:
-		s.mu.RLock()
-		defer s.mu.RUnlock()
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		for _, evValue := range s.mapEvents {
 			if event.TimeStart.Equal(evValue.TimeStart) && event.ID != evValue.ID {
 				return ErrBusyTime
@@ -54,8 +54,8 @@ func (s *Storage) GetEventID(ctx context.Context, event *storage.Event) (uuid.UU
 	case <-ctx.Done():
 		return uuid.Nil, ErrCanceledByContext
 	default:
-		s.mu.RLock()
-		defer s.mu.RUnlock()
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		if _, ok := s.mapEvents[event.ID]; ok {
 			return event.ID, nil
 		}
@@ -68,8 +68,8 @@ func (s *Storage) DeleteEvent(ctx context.Context, id uuid.UUID) error {
 	case <-ctx.Done():
 		return ErrCanceledByContext
 	default:
-		s.mu.RLock()
-		defer s.mu.RUnlock()
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		if _, ok := s.mapEvents[id]; !ok {
 			return ErrEventNotExist
 		}
@@ -83,8 +83,8 @@ func (s *Storage) UpdateEvent(ctx context.Context, event *storage.Event) error {
 	case <-ctx.Done():
 		return ErrCanceledByContext
 	default:
-		s.mu.RLock()
-		defer s.mu.RUnlock()
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		if _, ok := s.mapEvents[event.ID]; !ok {
 			return ErrEventNotExist
 		}
@@ -99,8 +99,8 @@ func (s *Storage) GetEventsPerDay(ctx context.Context, day time.Time) ([]storage
 	case <-ctx.Done():
 		return nil, ErrCanceledByContext
 	default:
-		s.mu.RLock()
-		defer s.mu.RUnlock()
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		for _, eventStruct := range s.mapEvents {
 			if eventStruct.TimeStart.Year() == day.Year() && eventStruct.TimeStart.Month() == day.Month() &&
 				eventStruct.TimeStart.Day() == day.Day() {
@@ -117,8 +117,8 @@ func (s *Storage) GetEventsPerWeek(ctx context.Context, beginDate time.Time) ([]
 	case <-ctx.Done():
 		return nil, ErrCanceledByContext
 	default:
-		s.mu.RLock()
-		defer s.mu.RUnlock()
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		endDay := beginDate.AddDate(0, 0, 7)
 		for _, eventStruct := range s.mapEvents {
 			if (eventStruct.TimeStart.After(beginDate) || eventStruct.TimeStart.Equal(beginDate)) &&
@@ -136,8 +136,8 @@ func (s *Storage) GetEventsPerMonth(ctx context.Context, beginDate time.Time) ([
 	case <-ctx.Done():
 		return nil, ErrCanceledByContext
 	default:
-		s.mu.RLock()
-		defer s.mu.RUnlock()
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		endDay := beginDate.AddDate(0, 1, 0)
 		for _, eventStruct := range s.mapEvents {
 			if (eventStruct.TimeStart.After(beginDate) || eventStruct.TimeStart.Equal(beginDate)) &&
