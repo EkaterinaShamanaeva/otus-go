@@ -4,13 +4,16 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/app"
 	configuration "github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/config"
 	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/logger"
+	internalgrpc "github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/server/grpc"
 	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/storage/init_storage"
 	"log"
 	"net"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -56,7 +59,10 @@ func main() {
 
 	logg.Info("DB connected...")
 
-	server := internalhttp.NewServer(logg)
+	calendar := app.New(logg, storage)
+
+	server := internalhttp.NewServer(logg) // TODO add calendar
+	grpc := internalgrpc.New(logg, calendar)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -71,12 +77,38 @@ func main() {
 		if err = server.Stop(ctx); err != nil {
 			logg.Error("failed to stop http server: " + err.Error())
 		}
+
+		if err = grpc.Stop(ctx); err != nil {
+			logg.Error("failed to stop grpc server: " + err.Error())
+		}
+
+		if err = calendar.Close(ctx); err != nil {
+			logg.Error("failed close storage: " + err.Error())
+		}
 	}()
 
-	addrServer := net.JoinHostPort(config.Server.Host, config.Server.Port)
-	if err = server.Start(ctx, addrServer); err != nil {
-		logg.Error("failed to start http server: " + err.Error())
-		cancel()
-		os.Exit(1) //nolint:gocritic
-	}
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		addrServer := net.JoinHostPort(config.Server.Host, config.Server.Port)
+		if err = server.Start(ctx, addrServer); err != nil {
+			logg.Error("failed to start http server: " + err.Error())
+			cancel()
+			os.Exit(1) //nolint:gocritic
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		addrServer := net.JoinHostPort(config.Server.Host, "50051")
+		if err = grpc.Start(ctx, addrServer); err != nil {
+			logg.Error("failed to start gRPC server: " + err.Error())
+			cancel()
+		}
+	}()
+
+	<-ctx.Done()
+	wg.Wait()
 }
