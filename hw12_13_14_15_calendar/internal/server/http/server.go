@@ -3,15 +3,17 @@ package internalhttp
 import (
 	"context"
 	"fmt"
+	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/app"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"time"
 )
 
-type Server struct { // TODO: add Application
+type Server struct {
 	server *http.Server
 	router *httprouter.Router
 	logg   Logger
+	app    *app.App
 }
 
 type Logger interface {
@@ -24,14 +26,20 @@ type Logger interface {
 type Application interface { // TODO implement
 }
 
-func NewServer(logger Logger) *Server { // app Application
-	serv := &Server{logg: logger}
+func NewServer(logger Logger, app *app.App) *Server { // app Application
+	serv := &Server{logg: logger, app: app}
 	serv.router = httprouter.New()
 
 	serv.router.GET("/", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 		text := "Hello world!"
 		fmt.Fprint(writer, text)
 	})
+	serv.router.PUT("/create_event", serv.createEvent)
+	serv.router.PUT("/update_event", serv.updateEvent)
+	serv.router.DELETE("/delete_event", serv.deleteEvent)
+	serv.router.GET("/get_events_per_day", serv.getEventsPerDay)
+	serv.router.GET("/get_events_per_week", serv.getEventsPerWeek)
+	serv.router.GET("/get_events_per_month", serv.getEventsPerMonth)
 
 	return serv
 }

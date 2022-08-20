@@ -61,7 +61,7 @@ func main() {
 
 	calendar := app.New(logg, storage)
 
-	server := internalhttp.NewServer(logg) // TODO add calendar
+	server := internalhttp.NewServer(logg, calendar)
 	grpc := internalgrpc.New(logg, calendar)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
