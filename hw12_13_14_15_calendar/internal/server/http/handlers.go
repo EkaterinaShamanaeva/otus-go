@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/app"
 	"github.com/gofrs/uuid"
-	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"time"
 )
 
-func (s *Server) createEvent(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (s *Server) createEvent(w http.ResponseWriter, r *http.Request) {
 	ev := app.Event{}
 	err := json.NewDecoder(r.Body).Decode(&ev)
 	if err != nil {
@@ -27,7 +26,7 @@ func (s *Server) createEvent(w http.ResponseWriter, r *http.Request, params http
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) updateEvent(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (s *Server) updateEvent(w http.ResponseWriter, r *http.Request) {
 	ev := app.Event{}
 	err := json.NewDecoder(r.Body).Decode(&ev)
 	if err != nil {
@@ -44,7 +43,7 @@ func (s *Server) updateEvent(w http.ResponseWriter, r *http.Request, params http
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) deleteEvent(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (s *Server) deleteEvent(w http.ResponseWriter, r *http.Request) {
 	type id struct {
 		id uuid.UUID `json:"id"`
 	}
@@ -64,7 +63,7 @@ func (s *Server) deleteEvent(w http.ResponseWriter, r *http.Request, params http
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) getEventsPerDay(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (s *Server) getEventsPerDay(w http.ResponseWriter, r *http.Request) {
 	var day time.Time
 	err := json.NewDecoder(r.Body).Decode(&day)
 	if err != nil {
@@ -87,7 +86,7 @@ func (s *Server) getEventsPerDay(w http.ResponseWriter, r *http.Request, params 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) getEventsPerWeek(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (s *Server) getEventsPerWeek(w http.ResponseWriter, r *http.Request) {
 	var day time.Time
 	err := json.NewDecoder(r.Body).Decode(&day)
 	if err != nil {
@@ -110,7 +109,7 @@ func (s *Server) getEventsPerWeek(w http.ResponseWriter, r *http.Request, params
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) getEventsPerMonth(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (s *Server) getEventsPerMonth(w http.ResponseWriter, r *http.Request) {
 	var day time.Time
 	err := json.NewDecoder(r.Body).Decode(&day)
 	if err != nil {

@@ -18,6 +18,7 @@ import (
 	"time"
 )
 
+//go:generate protoc -I ../../../api EventService.proto --go_out=. --go-grpc_out=require_unimplemented_servers=false:.
 type server struct {
 	srv  *grpc.Server
 	app  *app.App

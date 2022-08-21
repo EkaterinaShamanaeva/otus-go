@@ -5,7 +5,8 @@ logger:
 # Server config
 server:
   host: "127.0.0.1"
-  port: "8080"
+  http_port: "8080"
+  grpc_port: "50051"
 # Database config
 database:
   host: "127.0.0.1"

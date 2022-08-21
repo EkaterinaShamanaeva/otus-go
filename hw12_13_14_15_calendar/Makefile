@@ -37,4 +37,7 @@ lint: install-lint-deps
 migrate:
 	$(MIGRATOR) -config ./configs/config.yaml -dir=./migrations up
 
+generate:
+	go generate ./...
+
 .PHONY: build run build-img run-img version test lint

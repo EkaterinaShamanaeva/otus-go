@@ -92,7 +92,7 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-		addrServer := net.JoinHostPort(config.Server.Host, config.Server.Port)
+		addrServer := net.JoinHostPort(config.Server.Host, config.Server.HttpPort)
 		if err = server.Start(ctx, addrServer); err != nil {
 			logg.Error("failed to start http server: " + err.Error())
 			cancel()
@@ -102,7 +102,7 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-		addrServer := net.JoinHostPort(config.Server.Host, "50051")
+		addrServer := net.JoinHostPort(config.Server.Host, config.Server.GrpcPort)
 		if err = grpc.Start(ctx, addrServer); err != nil {
 			logg.Error("failed to start gRPC server: " + err.Error())
 			cancel()
