@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-//go:generate protoc -I ../../../api EventService.proto --go_out=. --go-grpc_out=require_unimplemented_servers=false:.
+//go:generate protoc -I ../../../api EventService.proto --go_out=. --go-grpc_out=.
 type server struct {
 	srv  *grpc.Server
 	app  *app.App
@@ -134,7 +134,7 @@ func (s *server) DeleteEvent(ctx context.Context, request *DeleteEventRequest) (
 func (s *server) GetEventsPerDay(ctx context.Context, request *GetEventsPerDayRequest) (*GetEventsPerDayResponse, error) {
 	listEvents, err := s.app.GetEventsPerDay(ctx, request.TimeStart.AsTime())
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, fmt.Sprintf("error to get evens list day: %v", err))
+		return nil, status.Errorf(codes.Internal, fmt.Sprintf("error to get evens list: %v", err))
 	}
 
 	return &GetEventsPerDayResponse{Events: convertStorageEvToGrpcEv(listEvents)}, nil
@@ -143,7 +143,7 @@ func (s *server) GetEventsPerDay(ctx context.Context, request *GetEventsPerDayRe
 func (s *server) GetEventsPerWeek(ctx context.Context, request *GetEventsPerWeekRequest) (*GetEventsPerWeekResponse, error) {
 	listEvents, err := s.app.GetEventsPerWeek(ctx, request.Day.AsTime())
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, fmt.Sprintf("error to get evens list day: %v", err))
+		return nil, status.Errorf(codes.Internal, fmt.Sprintf("error to get evens list: %v", err))
 	}
 
 	return &GetEventsPerWeekResponse{Events: convertStorageEvToGrpcEv(listEvents)}, nil
@@ -152,7 +152,7 @@ func (s *server) GetEventsPerWeek(ctx context.Context, request *GetEventsPerWeek
 func (s *server) GetEventsPerMonth(ctx context.Context, request *GetEventsPerMonthRequest) (*GetEventsPerMonthResponse, error) {
 	listEvents, err := s.app.GetEventsPerMonth(ctx, request.BeginDate.AsTime())
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, fmt.Sprintf("error to get evens list day: %v", err))
+		return nil, status.Errorf(codes.Internal, fmt.Sprintf("error to get evens list: %v", err))
 	}
 
 	return &GetEventsPerMonthResponse{Events: convertStorageEvToGrpcEv(listEvents)}, nil

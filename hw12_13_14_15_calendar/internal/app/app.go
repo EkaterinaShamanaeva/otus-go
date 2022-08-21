@@ -42,9 +42,6 @@ type Application interface {
 	GetEventsPerMonth(ctx context.Context, beginDate time.Time) ([]Event, error)
 	Close(ctx context.Context) error
 }
-type Storage interface { // TODO
-
-}
 
 func New(logger Logger, storage storage.Storage) *App {
 	return &App{
@@ -108,7 +105,7 @@ func (a *App) UpdateEvent(ctx context.Context, event *Event) error {
 	})
 }
 
-func (a *App) GetEventID(ctx context.Context, event *storage.Event) (uuid.UUID, error) { //TODO check
+func (a *App) GetEventID(ctx context.Context, event *storage.Event) (uuid.UUID, error) {
 	return a.storage.GetEventID(ctx, event)
 }
 

@@ -106,6 +106,7 @@ func main() {
 		if err = grpc.Start(ctx, addrServer); err != nil {
 			logg.Error("failed to start gRPC server: " + err.Error())
 			cancel()
+			os.Exit(1) //nolint:gocritic
 		}
 	}()
 

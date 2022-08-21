@@ -93,7 +93,7 @@ func (s *Storage) UpdateEvent(ctx context.Context, event *storage.Event) error {
 	return nil
 }
 
-func (s *Storage) GetEventsPerDay(ctx context.Context, day time.Time) ([]storage.Event, error) { // change int
+func (s *Storage) GetEventsPerDay(ctx context.Context, day time.Time) ([]storage.Event, error) {
 	eventsPerDay := make([]storage.Event, 0)
 	select {
 	case <-ctx.Done():

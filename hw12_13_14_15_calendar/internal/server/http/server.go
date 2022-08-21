@@ -10,7 +10,7 @@ import (
 
 type Server struct {
 	server *http.Server
-	router *mux.Router //*httprouter.Router
+	router *mux.Router
 	logg   Logger
 	app    *app.App
 }
@@ -22,13 +22,11 @@ type Logger interface {
 	Debug(msg string)
 }
 
-type Application interface { // TODO implement
-}
-
-func NewServer(logger Logger, app *app.App) *Server { // app Application
+func NewServer(logger Logger, app *app.App) *Server {
 	serv := &Server{logg: logger, app: app}
-	// serv.router = httprouter.New() //TODO
 	serv.router = mux.NewRouter()
+
+	serv.router.Use(loggingMiddleware(serv.logg))
 
 	serv.router.HandleFunc("/create_event", serv.createEvent).Methods("PUT")
 	serv.router.HandleFunc("/update_event", serv.updateEvent).Methods("PUT")
@@ -36,13 +34,6 @@ func NewServer(logger Logger, app *app.App) *Server { // app Application
 	serv.router.HandleFunc("/get_events_per_day", serv.getEventsPerDay).Methods("GET")
 	serv.router.HandleFunc("/get_events_per_week", serv.getEventsPerWeek).Methods("GET")
 	serv.router.HandleFunc("/get_events_per_month", serv.getEventsPerMonth).Methods("GET")
-
-	//serv.router.PUT("/create_event", serv.createEvent)
-	//serv.router.PUT("/update_event", serv.updateEvent)
-	//serv.router.DELETE("/delete_event", serv.deleteEvent)
-	//serv.router.GET("/get_events_per_day", serv.getEventsPerDay)
-	//serv.router.GET("/get_events_per_week", serv.getEventsPerWeek)
-	//serv.router.GET("/get_events_per_month", serv.getEventsPerMonth)
 
 	return serv
 }
