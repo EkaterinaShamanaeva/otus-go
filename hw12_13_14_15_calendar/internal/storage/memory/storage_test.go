@@ -21,6 +21,7 @@ func TestStorage(t *testing.T) {
 			fmt.Println(err)
 		}
 		timeStartFirstEvent, err := time.Parse("2/1/2006 3:04 PM", "8/8/2022 3:00 PM")
+		fmt.Println(timeStartFirstEvent)
 		if err != nil {
 			fmt.Println(err)
 		}

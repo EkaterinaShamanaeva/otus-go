@@ -12,6 +12,7 @@ import (
 func (s *Server) createEvent(w http.ResponseWriter, r *http.Request) {
 	ev := app.Event{}
 	err := json.NewDecoder(r.Body).Decode(&ev)
+	fmt.Println("decoded: ", ev, ev.TimeStart, ev.Duration)
 	if err != nil {
 		s.logg.Error(fmt.Sprintf("error to get request body: %v", err))
 		http.Error(w, err.Error(), http.StatusBadRequest)

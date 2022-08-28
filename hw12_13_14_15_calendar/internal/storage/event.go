@@ -25,4 +25,13 @@ type Storage interface {
 	GetEventsPerWeek(ctx context.Context, beginDate time.Time) ([]Event, error)
 	GetEventsPerMonth(ctx context.Context, beginDate time.Time) ([]Event, error)
 	Close(ctx context.Context) error
+	ListForScheduler(ctx context.Context, remindFor time.Duration, period time.Duration) ([]Notification, error)
+	ClearEvents(ctx context.Context) error
+}
+
+type Notification struct {
+	ID       uuid.UUID `json:"id"`
+	Title    string    `json:"title"`
+	Datetime time.Time `json:"datetime"`
+	UserID   uuid.UUID `json:"user_id"`
 }

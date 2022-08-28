@@ -152,3 +152,11 @@ func (s *Storage) GetEventsPerMonth(ctx context.Context, beginDate time.Time) ([
 func (s *Storage) Close(ctx context.Context) error {
 	return nil
 }
+
+func (s *Storage) ListForScheduler(ctx context.Context, remindFor time.Duration, period time.Duration) ([]storage.Notification, error) {
+	return nil, nil
+}
+
+func (s *Storage) ClearEvents(ctx context.Context) error {
+	return nil
+}

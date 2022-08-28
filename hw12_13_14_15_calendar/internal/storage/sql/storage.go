@@ -154,3 +154,54 @@ func (s *Storage) Close(ctx context.Context) error {
 	s.Pool.Close()
 	return nil
 }
+
+func (s *Storage) ListForScheduler(ctx context.Context, remindFor time.Duration, period time.Duration) ([]storage.Notification, error) {
+	var notices []storage.Notification
+	from := time.Now().Add(remindFor)
+	to := from.Add(period)
+
+	rows, err := s.Pool.Query(
+		ctx,
+		`SELECT id, title, start_date, user_id FROM events WHERE start_date >= $1 AND start_date < $2`,
+		from.Format("2006-01-02 15:04:00 -0700"),
+		to.Format("2006-01-02 15:04:00 -0700"),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var notice storage.Notification
+
+		if err = rows.Scan(
+			&notice.ID,
+			&notice.Title,
+			&notice.Datetime,
+			&notice.UserID,
+		); err != nil {
+			return nil, err
+		}
+
+		notices = append(notices, notice)
+	}
+	fmt.Println("get list messages")
+	return notices, rows.Err()
+}
+
+func (s *Storage) ClearEvents(ctx context.Context) error {
+	hourInDay := 24 * time.Hour
+	daysInYear := 365 * hourInDay
+	yNow := time.Now().Year()
+	if yNow%4 == 0 && (yNow%100 != 0 || yNow%400 == 0) {
+		daysInYear = 366 * hourInDay
+	}
+	yearAgoStr := time.Now().Add(-1 * daysInYear).Format("2006-01-02 15:04:00 -0700")
+
+	_, err := s.Pool.Exec(ctx, `DELETE FROM events WHERE start_date < $1`, yearAgoStr)
+	if err != nil {
+		return err
+	}
+	fmt.Println("events cleaned")
+	return nil
+}
