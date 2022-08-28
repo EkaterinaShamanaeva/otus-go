@@ -2,12 +2,12 @@ package rabbitmq
 
 import (
 	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/logger"
-	"github.com/rabbitmq/amqp091-go"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Session struct {
-	conn    *amqp091.Connection
-	channel *amqp091.Channel
+	conn    *amqp.Connection
+	channel *amqp.Channel
 	addr    string
 	queue   string
 	logger  *logger.Logger
@@ -19,7 +19,7 @@ func New(addr, queue string, logger *logger.Logger) *Session {
 
 func (s *Session) Connect() (err error) {
 	// connection
-	s.conn, err = amqp091.Dial(s.addr)
+	s.conn, err = amqp.Dial(s.addr)
 	if err != nil {
 		s.logger.Error("failed to connect RabbitMQ")
 		return err

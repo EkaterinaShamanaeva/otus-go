@@ -3,7 +3,7 @@ package rabbitmq
 import (
 	"context"
 	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/logger"
-	"github.com/rabbitmq/amqp091-go"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Producer struct {
@@ -21,7 +21,7 @@ func (p *Producer) Publish(ctx context.Context, body []byte) error {
 		p.queue,
 		false,
 		false,
-		amqp091.Publishing{
+		amqp.Publishing{
 			ContentType: "application/json",
 			Body:        body,
 		})
