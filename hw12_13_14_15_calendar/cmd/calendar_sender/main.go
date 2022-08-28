@@ -65,7 +65,7 @@ func main() {
 				}
 				logg.Info(fmt.Sprintf(
 					"ID: %d, title: \"%s\", datetime: %s, owner id: %d",
-					notice.ID, notice.Title, notice.Datetime, notice.UserID,
+					notice.ID, notice.Title, notice.TimeStart, notice.UserID,
 				))
 			}
 		}

@@ -156,37 +156,24 @@ func (s *Storage) Close(ctx context.Context) error {
 }
 
 func (s *Storage) ListForScheduler(ctx context.Context, remindFor time.Duration, period time.Duration) ([]storage.Notification, error) {
-	var notices []storage.Notification
 	from := time.Now().Add(remindFor)
+	fmt.Println(from)
 	to := from.Add(period)
+	fmt.Println(to)
 
-	rows, err := s.Pool.Query(
-		ctx,
-		`SELECT id, title, start_date, user_id FROM events WHERE start_date >= $1 AND start_date < $2`,
-		from.Format("2006-01-02 15:04:00 -0700"),
-		to.Format("2006-01-02 15:04:00 -0700"),
-	)
+	query := `SELECT id, title, start_date, user_id FROM events WHERE start_date BETWEEN $1 AND $2;`
+	var notices []*storage.Notification
+	err := pgxscan.Select(ctx, s.Pool, &notices, query, from.Format("2006-01-02 15:04:00 -0700"),
+		to.Format("2006-01-02 15:04:00 -0700"))
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var notice storage.Notification
-
-		if err = rows.Scan(
-			&notice.ID,
-			&notice.Title,
-			&notice.Datetime,
-			&notice.UserID,
-		); err != nil {
-			return nil, err
-		}
-
-		notices = append(notices, notice)
+	res := make([]storage.Notification, 0, len(notices))
+	for _, ev := range notices {
+		res = append(res, *ev)
 	}
-	fmt.Println("get list messages")
-	return notices, rows.Err()
+	fmt.Println(res)
+	return res, nil
 }
 
 func (s *Storage) ClearEvents(ctx context.Context) error {

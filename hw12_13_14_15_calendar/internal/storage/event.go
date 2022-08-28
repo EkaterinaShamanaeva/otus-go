@@ -30,8 +30,8 @@ type Storage interface {
 }
 
 type Notification struct {
-	ID       uuid.UUID `json:"id"`
-	Title    string    `json:"title"`
-	Datetime time.Time `json:"datetime"`
-	UserID   uuid.UUID `json:"user_id"`
+	ID        uuid.UUID `db:"id" json:"id"`
+	Title     string    `db:"title" json:"title"`
+	TimeStart time.Time `db:"start_date" json:"time_start"`
+	UserID    uuid.UUID `db:"user_id" json:"user_id"`
 }
