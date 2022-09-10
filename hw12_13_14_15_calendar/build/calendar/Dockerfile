@@ -11,7 +11,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build -o calendar cmd/calendar/main.go
+RUN go build -o calendar cmd/calendar/main.go
 
 FROM alpine:latest
 
@@ -19,6 +19,9 @@ WORKDIR /app
 
 COPY --from=builder /app/calendar /app/calendar
 
-EXPOSE 8888 50051
+ENV CONFIG_FILE /etc/calendar/config.yaml
+COPY ./configs/config.yaml ${CONFIG_FILE}
 
-ENTRYPOINT ["./calendar"]
+EXPOSE 8080 50051
+
+CMD ./calendar -config ${CONFIG_FILE}

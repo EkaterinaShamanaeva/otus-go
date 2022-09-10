@@ -23,16 +23,17 @@ import (
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "configs/config.yaml", "Path to configuration file")
+	//flag.StringVar(&configFile, "config", "configs/config.yaml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "/configs/config.yaml", "Path to configuration file")
 }
 
 func main() {
 	flag.Parse()
 
-	if flag.Arg(0) == "version" {
-		printVersion()
-		return
-	}
+	//if flag.Arg(0) == "version" {
+	//	printVersion()
+	//	return
+	//}
 
 	config := configuration.NewConfig()
 
@@ -50,6 +51,7 @@ func main() {
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", config.Database.Username,
 		config.Database.Password, config.Database.Host, config.Database.Port, config.Database.Name,
 		config.Database.SSLMode)
+	fmt.Println(dsn)
 
 	storage, err := init_storage.NewStorage(ctx, config.Storage, dsn)
 	if err != nil {

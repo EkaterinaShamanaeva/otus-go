@@ -1,18 +1,48 @@
-# Собираем в гошке
-FROM golang:1.16.2 as build
-LABEL stage=builder
+#FROM golang:1.19-alpine AS builder
+#LABEL stage=builder
+#
+#WORKDIR /app
+#
+#COPY go.mod ./
+#COPY go.sum ./
+#
+#RUN go mod download
+#
+#COPY . .
+#
+#RUN go build -o calendar_sender cmd/calendar_sender/main.go
+#
+#FROM alpine:latest
+#
+#WORKDIR /app
+#
+#COPY --from=builder /app/calendar_sender /app/calendar_sender
+#
+#ENTRYPOINT ["./calendar_sender"]
+FROM golang:1.19 as build
 
-RUN set -ex \
-        && apk add --no-cache --virtual build-dependencies \
-            build-base \
-            git \
-        && go get -ldflags "-extldflags -static" github.com/pressly/goose/cmd/goose \
-        && apk del build-dependencies
+ENV BIN_FILE /opt/calendar/calendar-sender
+ENV CODE_DIR /go/src/
 
-FROM alpine:latest
+WORKDIR ${CODE_DIR}
 
-WORKDIR /app
+# Кэшируем слои с модулями
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
 
-COPY --from=builder /go/bin/goose /app/goose
+COPY . ${CODE_DIR}
 
-ENTRYPOINT ["./goose"]
+# Собираем статический бинарник Go (без зависимостей на Си API),
+# иначе он не будет работать в alpine образе.
+ARG LDFLAGS
+RUN CGO_ENABLED=0 go build \
+        -ldflags "$LDFLAGS" \
+        -o ${BIN_FILE} cmd/calendar_sender/*
+
+# На выходе тонкий образ
+FROM alpine:3.9
+
+LABEL ORGANIZATION="OTUS Online Education"
+LABEL SERVICE="calendar_sender"
+LABEL MAINTAINERS="student@otus.ru"

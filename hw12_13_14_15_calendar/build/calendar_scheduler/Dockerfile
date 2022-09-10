@@ -1,7 +1,29 @@
+#FROM golang:1.19-alpine AS builder
+#LABEL stage=builder
+#
+#WORKDIR /app
+#
+#COPY go.mod ./
+#COPY go.sum ./
+#
+#RUN go mod download
+#
+#COPY . .
+#
+#RUN go build -o calendar_scheduler cmd/calendar_scheduler/main.go
+#
+#FROM alpine:latest
+#
+#WORKDIR /app
+#
+#COPY --from=builder /app/calendar_scheduler /app/calendar_scheduler
+#
+#ENTRYPOINT ["./calendar_scheduler"]
+# syntax=docker/dockerfile:1
 # Собираем в гошке
-FROM golang:1.16.2 as build
+FROM golang:1.19 as build
 
-ENV BIN_FILE /opt/calendar/calendar-app
+ENV BIN_FILE /opt/calendar/calendar-scheduler
 ENV CODE_DIR /go/src/
 
 WORKDIR ${CODE_DIR}
@@ -18,19 +40,11 @@ COPY . ${CODE_DIR}
 ARG LDFLAGS
 RUN CGO_ENABLED=0 go build \
         -ldflags "$LDFLAGS" \
-        -o ${BIN_FILE} cmd/calendar/*
+        -o ${BIN_FILE} cmd/calendar_scheduler/*
 
 # На выходе тонкий образ
 FROM alpine:3.9
 
 LABEL ORGANIZATION="OTUS Online Education"
-LABEL SERVICE="calendar"
+LABEL SERVICE="calendar_scheduler"
 LABEL MAINTAINERS="student@otus.ru"
-
-ENV BIN_FILE "/opt/calendar/calendar-app"
-COPY --from=build ${BIN_FILE} ${BIN_FILE}
-
-ENV CONFIG_FILE /etc/calendar/config.toml
-COPY ./configs/config.toml ${CONFIG_FILE}
-
-CMD ${BIN_FILE} -config ${CONFIG_FILE}
