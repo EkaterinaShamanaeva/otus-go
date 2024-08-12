@@ -1,9 +1,12 @@
+//go:build !bench
 // +build !bench
 
 package hw10programoptimization
 
 import (
 	"bytes"
+	"log"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -36,4 +39,36 @@ func TestGetDomainStat(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, DomainStat{}, result)
 	})
+}
+
+func TestGetUsers(t *testing.T) {
+	expectedUserEmails := email{"aliquid_qui_ea@Browsedrive.gov",
+		"MelissaGutierrez@Twinte.biz", "FrancesEllis@Quinu.edu"}
+
+	var file *os.File
+	file, err := os.OpenFile("testdata/get_users_test.dat", os.O_RDONLY, 0)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	resultGetUsers, errGetUsers := getUserEmails(file)
+
+	if err = file.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+	require.NoError(t, errGetUsers)
+	require.Equal(t, expectedUserEmails, resultGetUsers)
+}
+
+func TestCountDomains(t *testing.T) {
+	userEmails := email{"aliquid_qui_ea@Browsedrive.gov", "mLynch@broWsecat.com", "RoseSmith@Browsecat.com"}
+	domainCom := "com"
+
+	expected := make(DomainStat)
+	expected["browsecat.com"] = 2
+
+	result, err := countDomains(userEmails, domainCom)
+	require.NoError(t, err)
+	require.Equal(t, expected, result)
 }
