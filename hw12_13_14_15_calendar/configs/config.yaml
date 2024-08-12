@@ -1,0 +1,17 @@
+# Logger config
+logger:
+  level: "INFO"
+  path: "logfile.log"
+# Server config
+server:
+  host: "127.0.0.1"
+  port: "8080"
+# Database config
+database:
+  host: "127.0.0.1"
+  port: "5432"
+  username: "postgres"
+  password: "password"
+  name: "calendar"
+  SSLMode: "disable"
+storage: "SQL"

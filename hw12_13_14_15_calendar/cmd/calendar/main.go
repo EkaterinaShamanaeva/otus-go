@@ -3,21 +3,24 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	configuration "github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/config"
+	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/logger"
+	"github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/storage/init_storage"
+	"log"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
+	internalhttp "github.com/EkaterinaShamanaeva/otus-go/hw12_13_14_15_calendar/internal/server/http"
 )
 
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "configs/config.yaml", "Path to configuration file")
 }
 
 func main() {
@@ -28,13 +31,32 @@ func main() {
 		return
 	}
 
-	config := NewConfig()
-	logg := logger.New(config.Logger.Level)
+	config := configuration.NewConfig()
 
-	storage := memorystorage.New()
-	calendar := app.New(logg, storage)
+	if err := config.BuildConfig(configFile); err != nil {
+		log.Fatalf("Config error: %v", err)
+	}
 
-	server := internalhttp.NewServer(logg, calendar)
+	logg, err := logger.New(config.Logger.Level, config.Logger.Path)
+	if err != nil {
+		log.Fatalf("Logger error: %v", err)
+	}
+
+	ctx := context.Background()
+
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", config.Database.Username,
+		config.Database.Password, config.Database.Host, config.Database.Port, config.Database.Name,
+		config.Database.SSLMode)
+
+	storage, err := init_storage.NewStorage(ctx, config.Storage, dsn)
+	if err != nil {
+		logg.Error("failed to connect DB: " + err.Error())
+	}
+	defer storage.Close(ctx)
+
+	logg.Info("DB connected...")
+
+	server := internalhttp.NewServer(logg)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -46,14 +68,13 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 
-		if err := server.Stop(ctx); err != nil {
+		if err = server.Stop(ctx); err != nil {
 			logg.Error("failed to stop http server: " + err.Error())
 		}
 	}()
 
-	logg.Info("calendar is running...")
-
-	if err := server.Start(ctx); err != nil {
+	addrServer := net.JoinHostPort(config.Server.Host, config.Server.Port)
+	if err = server.Start(ctx, addrServer); err != nil {
 		logg.Error("failed to start http server: " + err.Error())
 		cancel()
 		os.Exit(1) //nolint:gocritic
