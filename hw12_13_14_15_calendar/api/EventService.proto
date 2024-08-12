@@ -2,6 +2,67 @@ syntax = "proto3";
 
 package event;
 
+option go_package = "./grpc;internalgrpc";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+
 message Event {
-    // TODO
+    string id = 1;
+    string title = 2;
+    google.protobuf.Timestamp time_start = 3;
+    google.protobuf.Duration duration = 4;
+    string description = 5;
+    string user_id = 6;
+    int32 notify_before = 7;
+}
+
+service Calendar {
+    rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse);
+    rpc UpdateEvent(UpdateEventRequest) returns (google.protobuf.Empty);
+    rpc DeleteEvent(DeleteEventRequest) returns (google.protobuf.Empty);
+    rpc GetEventsPerDay(GetEventsPerDayRequest) returns (GetEventsPerDayResponse);
+    rpc GetEventsPerWeek(GetEventsPerWeekRequest) returns (GetEventsPerWeekResponse);
+    rpc GetEventsPerMonth(GetEventsPerMonthRequest) returns (GetEventsPerMonthResponse);
+}
+
+message CreateEventRequest {
+    Event event = 1;
+}
+
+message CreateEventResponse {
+    string id = 1;
+}
+
+message UpdateEventRequest {
+    Event event = 1;
+}
+
+message DeleteEventRequest {
+    string id = 1;
+}
+
+message GetEventsPerDayRequest {
+    google.protobuf.Timestamp time_start = 1;
+}
+
+message GetEventsPerDayResponse {
+    repeated Event events = 1;
+}
+
+message GetEventsPerWeekRequest {
+    google.protobuf.Timestamp day = 1;
+}
+
+message GetEventsPerWeekResponse {
+    repeated Event events = 1;
+}
+
+message GetEventsPerMonthRequest {
+    google.protobuf.Timestamp begin_date = 1;
+}
+
+message GetEventsPerMonthResponse {
+    repeated Event events = 1;
 }

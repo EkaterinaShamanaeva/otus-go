@@ -1,0 +1,8 @@
+# Logger config
+logger:
+  level: "INFO"
+  path: "logfile_rmq.log"
+# RabbitMQ config
+rmq:
+  uri: "amqp://guest:guest@localhost:5672/"
+  queue: "calendar"

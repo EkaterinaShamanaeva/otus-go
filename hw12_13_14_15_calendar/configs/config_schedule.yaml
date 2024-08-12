@@ -1,0 +1,24 @@
+# Logger config
+logger:
+  level: "INFO"
+  path: "logfile_schedule.log"
+# RabbitMQ config
+schedule:
+  period: "1m"
+  remind_for: "1h"
+  uri: "amqp://guest:guest@localhost:5672/"
+  queue: "calendar"
+# Server
+server:
+  host: "127.0.0.1"
+  http_port: "8080"
+  grpc_port: "50051"
+# Database config
+database:
+  host: "127.0.0.1"
+  port: "5432"
+  username: "postgres"
+  password: "password"
+  name: "calendar"
+  SSLMode: "disable"
+storage: "SQL"
